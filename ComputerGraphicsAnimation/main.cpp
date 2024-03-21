@@ -1,109 +1,161 @@
 #include <iostream>
+#include <cmath>
 #include <GLFW/glfw3.h>
 
 using namespace std;
 
+// Объявляем глобальную переменную для хранения угла поворота
+float rotationAngle = 0.0f;
 float x, y;
+float scale = 1.0f;
 
-void DrawShape(float x, float y)
+void rotateClockwise(float& x, float& y, float angle)
 {
-    // Рисуем ромб
+    float radians = angle * (3.14 / 180.0f); // Переводим угол в радианы
+    float newX = x * cos(radians) - y * sin(radians);
+    float newY = x * sin(radians) + y * cos(radians);
+    x = newX;
+    y = newY;
+    rotationAngle += angle; // Обновляем значение угла поворота
+}
+
+void reflectXEqualsY(float& x, float& y)
+{
+    float deltaX = x - y;
+    x = y + deltaX;
+    y = x + deltaX;
+}
+
+void DrawShape(float x, float y, float rotationAngle)
+{
+    // Размеры фигуры
+    float size = 0.4f * scale;
+
+    // Переводим угол поворота в радианы
+    float radians = rotationAngle * (3.14 / 180.0f);
+
+    // Поворачиваем координаты фигуры
+    float rotatedX = x * cos(radians) - y * sin(radians);
+    float rotatedY = x * sin(radians) + y * cos(radians);
+
+    // Рисуем фигуру с учетом поворота
     glBegin(GL_LINES);
     glColor3f(1.0f, 1.0f, 0.0f);
-    glVertex2f(x - 0.4, y);
-    glVertex2f(x, y + 0.4);
+    glVertex2f(rotatedX - size, rotatedY);
+    glVertex2f(rotatedX, rotatedY + size);
 
-    glVertex2f(x, y + 0.4);
-    glVertex2f(x + 0.4, y);
+    glVertex2f(rotatedX, rotatedY + size);
+    glVertex2f(rotatedX + size, rotatedY);
 
-    glVertex2f(x + 0.4, y);
-    glVertex2f(x, y - 0.4);
+    // Рисуем ромб
+    glColor3f(1.0f, 1.0f, 0.0f);
+    glVertex2f(rotatedX - size, rotatedY);
+    glVertex2f(rotatedX, rotatedY + size);
 
-    glVertex2f(x, y - 0.4);
-    glVertex2f(x - 0.4, y);
+    glVertex2f(rotatedX, rotatedY + size);
+    glVertex2f(rotatedX + size, rotatedY);
 
-    // Отрсиовка крестовины
-    glVertex2f(x, y + 0.4);
-    glVertex2f(x, y - 0.4);
+    glVertex2f(rotatedX + size, rotatedY);
+    glVertex2f(rotatedX, rotatedY - size);
 
-    glVertex2f(x + 0.4, y);
-    glVertex2f(x - 0.4, y);
+    glVertex2f(rotatedX, rotatedY - size);
+    glVertex2f(rotatedX - size, rotatedY);
+
+    // Отрисовка крестовины
+    glVertex2f(rotatedX, rotatedY + size);
+    glVertex2f(rotatedX, rotatedY - size);
+
+    glVertex2f(rotatedX + size, rotatedY);
+    glVertex2f(rotatedX - size, rotatedY);
 
     // Отрисовка звезды
-    glVertex2f(x - 0.4, y);
-    glVertex2f(x - 0.1, y + 0.1);
+    glVertex2f(rotatedX - size, rotatedY);
+    glVertex2f(rotatedX - size * 0.25, rotatedY + size * 0.25);
 
-    glVertex2f(x - 0.1, y + 0.1);
-    glVertex2f(x, y + 0.4);
+    glVertex2f(rotatedX - size * 0.25, rotatedY + size * 0.25);
+    glVertex2f(rotatedX, rotatedY + size);
 
-    glVertex2f(x, y + 0.4);
-    glVertex2f(x + 0.1, y + 0.1);
+    glVertex2f(rotatedX, rotatedY + size);
+    glVertex2f(rotatedX + size * 0.25, rotatedY + size * 0.25);
 
-    glVertex2f(x + 0.1, y + 0.1);
-    glVertex2f(x + 0.4, y);
+    glVertex2f(rotatedX + size * 0.25, rotatedY + size * 0.25);
+    glVertex2f(rotatedX + size, rotatedY);
 
-    glVertex2f(x + 0.4, y);
-    glVertex2f(x + 0.1, y - 0.1);
+    glVertex2f(rotatedX + size, rotatedY);
+    glVertex2f(rotatedX + size * 0.25, rotatedY - size * 0.25);
 
-    glVertex2f(x + 0.1, y - 0.1);
-    glVertex2f(x, y - 0.4);
+    glVertex2f(rotatedX + size * 0.25, rotatedY - size * 0.25);
+    glVertex2f(rotatedX, rotatedY - size);
 
-    glVertex2f(x, y - 0.4);
-    glVertex2f(x - 0.1, y - 0.1);
+    glVertex2f(rotatedX, rotatedY - size);
+    glVertex2f(rotatedX - size * 0.25, rotatedY - size * 0.25);
 
-    glVertex2f(x - 0.1, y - 0.1);
-    glVertex2f(x - 0.4, y);
+    glVertex2f(rotatedX - size * 0.25, rotatedY - size * 0.25);
+    glVertex2f(rotatedX - size, rotatedY);
     glEnd();
 }
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
-    // Изменяем масштаб фигуры относительно её текущего центра
+    // Изменяем масштаб фигуры
     float scaleFactor = 1.1f;
-    x = x + (xoffset - 450) * 0.002f * scaleFactor;
-    y = y - (yoffset - 450) * 0.002f * scaleFactor;
-    DrawShape(x, y); // Перерисовываем фигуру с новыми размерами
+    if (yoffset > 0)
+        scale *= scaleFactor;
+    else
+        scale /= scaleFactor;
+
+    DrawShape(x, y, rotationAngle); // Перерисовываем фигуру с новыми размерами
 }
 
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
     if (key == GLFW_KEY_W && action == GLFW_PRESS)
     {
-        y += 0.1f;
-        DrawShape(x, y);
+        y += 0.1f / scale;
+        DrawShape(x, y, rotationAngle);
     }
     else if (key == GLFW_KEY_D && action == GLFW_PRESS)
     {
-        x += 0.1f;
-        DrawShape(x, y);
+        x += 0.1f / scale;
+        DrawShape(x, y, rotationAngle);
     }
     else if (key == GLFW_KEY_S && action == GLFW_PRESS)
     {
-        y -= 0.1f;
-        DrawShape(x, y);
+        y -= 0.1f / scale;
+        DrawShape(x, y, rotationAngle);
     }
     else if (key == GLFW_KEY_A && action == GLFW_PRESS)
     {
-        x -= 0.1f;
-        DrawShape(x, y);
+        x -= 0.1f / scale;
+        DrawShape(x, y, rotationAngle);
     }
     // Отражение относительно оси OX
     else if (key == GLFW_KEY_Q && action == GLFW_PRESS)
     {
         y *= -1;
-        DrawShape(x, y);
+        DrawShape(x, y, rotationAngle);
     }
     // Отражение относительно оси OY
     else if (key == GLFW_KEY_E && action == GLFW_PRESS)
     {
         x *= -1;
-        DrawShape(x, y);
+        DrawShape(x, y, rotationAngle);
     }
     else if (key == GLFW_KEY_R && action == GLFW_PRESS)
     {
-        float x_new = y;
-        float y_new = x;
-        DrawShape(x_new, y_new);
+        reflectXEqualsY(x, y);
+        DrawShape(x, y, rotationAngle);
+    }
+    // Добавим обработку клавиш I и O для поворота фигуры
+    else if (key == GLFW_KEY_I && action == GLFW_PRESS)
+    {
+        rotationAngle -= 1.0f; // Поворот против часовой стрелки на 1 градус
+        DrawShape(x, y, rotationAngle);
+    }
+    else if (key == GLFW_KEY_O && action == GLFW_PRESS)
+    {
+        rotationAngle += 1.0f; // Поворот по часовой стрелке на 1 градус
+        DrawShape(x, y, rotationAngle);
     }
 }
 
@@ -158,7 +210,7 @@ int main(void)
 
     /* Установка текущего контекста для окна */
     glfwMakeContextCurrent(window);
-    
+
     // Прокурчивание колеса мыши
     glfwSetScrollCallback(window, scroll_callback);
 
@@ -166,8 +218,8 @@ int main(void)
     glfwSetKeyCallback(window, keyCallback);
 
     // Вводим центр фигуры
-    //cout << "Введите координаты центра фигуры\n";
-    //cin >> x >> y;
+    cout << "Введите координаты центра фигуры\n";
+    cin >> x >> y;
 
     /* Цикл до закрытия окна */
     while (!glfwWindowShouldClose(window))
@@ -179,7 +231,7 @@ int main(void)
         drawAxesWithGrid();
 
         // Рисуем фигуру
-        DrawShape(0, 0);
+        DrawShape(x, y, rotationAngle);
 
         /* Переключение переднего и заднего буферов */
         glfwSwapBuffers(window);
