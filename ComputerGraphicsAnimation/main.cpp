@@ -107,6 +107,16 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
     DrawShape(x, y, rotationAngle); // Перерисовываем фигуру с новыми размерами
 }
 
+
+/// <summary>
+/// /
+/// </summary>
+/// <param name="window"></param>
+/// <param name="key"></param>
+/// <param name="scancode"></param>
+/// <param name="action"></param>
+/// <param name="mods"></param>
+
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
     if (key == GLFW_KEY_W && action == GLFW_PRESS)
