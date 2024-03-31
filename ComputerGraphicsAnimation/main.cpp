@@ -1,173 +1,112 @@
 #include <iostream>
-#include <cmath>
 #include <GLFW/glfw3.h>
 
 using namespace std;
 
-// Объявляем глобальную переменную для хранения угла поворота
-float rotationAngle = 0.0f;
 float x, y;
-float scale = 1.0f;
+float rotationAngle = 0.0;
 
-void rotateClockwise(float& x, float& y, float angle)
+void DrawShape(float x, float y)
 {
-    float radians = angle * (3.14 / 180.0f); // Переводим угол в радианы
-    float newX = x * cos(radians) - y * sin(radians);
-    float newY = x * sin(radians) + y * cos(radians);
-    x = newX;
-    y = newY;
-    rotationAngle += angle; // Обновляем значение угла поворота
-}
-
-void reflectXEqualsY(float& x, float& y)
-{
-    float deltaX = x - y;
-    x = y + deltaX;
-    y = x + deltaX;
-}
-
-void DrawShape(float x, float y, float rotationAngle)
-{
-    // Размеры фигуры
-    float size = 0.4f * scale;
-
-    // Переводим угол поворота в радианы
-    float radians = rotationAngle * (3.14 / 180.0f);
-
-    // Поворачиваем координаты фигуры
-    float rotatedX = x * cos(radians) - y * sin(radians);
-    float rotatedY = x * sin(radians) + y * cos(radians);
-
-    // Рисуем фигуру с учетом поворота
-    glBegin(GL_LINES);
-    glColor3f(1.0f, 1.0f, 0.0f);
-    glVertex2f(rotatedX - size, rotatedY);
-    glVertex2f(rotatedX, rotatedY + size);
-
-    glVertex2f(rotatedX, rotatedY + size);
-    glVertex2f(rotatedX + size, rotatedY);
+    // Рисуем фигуру с учетом масштаба и поворота
+    glPushMatrix();
+    glTranslatef(x, y, 0.0f); // Перемещение в указанную точку
+    glRotatef(rotationAngle, 0.0f, 0.0f, 1.0f); // Поворот относительно оси Z
 
     // Рисуем ромб
+    glBegin(GL_LINES);
     glColor3f(1.0f, 1.0f, 0.0f);
-    glVertex2f(rotatedX - size, rotatedY);
-    glVertex2f(rotatedX, rotatedY + size);
+    glVertex2f(x - 0.5, y);
+    glVertex2f(x, y + 0.5);
 
-    glVertex2f(rotatedX, rotatedY + size);
-    glVertex2f(rotatedX + size, rotatedY);
+    glVertex2f(x, y + 0.5);
+    glVertex2f(x + 0.5, y);
 
-    glVertex2f(rotatedX + size, rotatedY);
-    glVertex2f(rotatedX, rotatedY - size);
+    glVertex2f(x + 0.5, y);
+    glVertex2f(x, y - 0.5);
 
-    glVertex2f(rotatedX, rotatedY - size);
-    glVertex2f(rotatedX - size, rotatedY);
+    glVertex2f(x, y - 0.5);
+    glVertex2f(x - 0.5, y);
 
-    // Отрисовка крестовины
-    glVertex2f(rotatedX, rotatedY + size);
-    glVertex2f(rotatedX, rotatedY - size);
+    // Отрсиовка крестовины
+    glVertex2f(x, y + 0.5);
+    glVertex2f(x, y - 0.5);
 
-    glVertex2f(rotatedX + size, rotatedY);
-    glVertex2f(rotatedX - size, rotatedY);
+    glVertex2f(x + 0.5, y);
+    glVertex2f(x - 0.5, y);
 
     // Отрисовка звезды
-    glVertex2f(rotatedX - size, rotatedY);
-    glVertex2f(rotatedX - size * 0.25, rotatedY + size * 0.25);
+    glVertex2f(x - 0.5, y);
+    glVertex2f(x - 0.1, y + 0.1);
 
-    glVertex2f(rotatedX - size * 0.25, rotatedY + size * 0.25);
-    glVertex2f(rotatedX, rotatedY + size);
+    glVertex2f(x - 0.1, y + 0.1);
+    glVertex2f(x, y + 0.5);
 
-    glVertex2f(rotatedX, rotatedY + size);
-    glVertex2f(rotatedX + size * 0.25, rotatedY + size * 0.25);
+    glVertex2f(x, y + 0.5);
+    glVertex2f(x + 0.1, y + 0.1);
 
-    glVertex2f(rotatedX + size * 0.25, rotatedY + size * 0.25);
-    glVertex2f(rotatedX + size, rotatedY);
+    glVertex2f(x + 0.1, y + 0.1);
+    glVertex2f(x + 0.5, y);
 
-    glVertex2f(rotatedX + size, rotatedY);
-    glVertex2f(rotatedX + size * 0.25, rotatedY - size * 0.25);
+    glVertex2f(x + 0.5, y);
+    glVertex2f(x + 0.1, y - 0.1);
 
-    glVertex2f(rotatedX + size * 0.25, rotatedY - size * 0.25);
-    glVertex2f(rotatedX, rotatedY - size);
+    glVertex2f(x + 0.1, y - 0.1);
+    glVertex2f(x, y - 0.5);
 
-    glVertex2f(rotatedX, rotatedY - size);
-    glVertex2f(rotatedX - size * 0.25, rotatedY - size * 0.25);
+    glVertex2f(x, y - 0.5);
+    glVertex2f(x - 0.1, y - 0.1);
 
-    glVertex2f(rotatedX - size * 0.25, rotatedY - size * 0.25);
-    glVertex2f(rotatedX - size, rotatedY);
+    glVertex2f(x - 0.1, y - 0.1);
+    glVertex2f(x - 0.5, y);
     glEnd();
+    glPopMatrix;
 }
 
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
-{
-    // Изменяем масштаб фигуры
-    float scaleFactor = 1.1f;
-    if (yoffset > 0)
-        scale *= scaleFactor;
-    else
-        scale /= scaleFactor;
-
-    DrawShape(x, y, rotationAngle); // Перерисовываем фигуру с новыми размерами
-}
-
-
-/// <summary>
-/// /
-/// </summary>
-/// <param name="window"></param>
-/// <param name="key"></param>
-/// <param name="scancode"></param>
-/// <param name="action"></param>
-/// <param name="mods"></param>
+//void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+//{
+//    // Изменяем масштаб фигуры
+//    if (yoffset > 0)
+//        scale += 0.1f; // Увеличиваем масштаб на 0.1 при прокручивании вверх
+//    else
+//        scale -= 0.1f; // Уменьшаем масштаб на 0.1 при прокручивании вниз
+//
+//    // Масштаб не может быть меньше 0.1
+//    if (scale < 0.1f)
+//        scale = 0.1f;
+//
+//    // Перерисовываем окно
+//    glfwPostEmptyEvent();
+//}
 
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
     if (key == GLFW_KEY_W && action == GLFW_PRESS)
     {
-        y += 0.1f / scale;
-        DrawShape(x, y, rotationAngle);
+        y += 0.1f; // Учитываем текущий масштаб при изменении координат
     }
     else if (key == GLFW_KEY_D && action == GLFW_PRESS)
     {
-        x += 0.1f / scale;
-        DrawShape(x, y, rotationAngle);
+        x += 0.1f; // Учитываем текущий масштаб при изменении координат
     }
     else if (key == GLFW_KEY_S && action == GLFW_PRESS)
     {
-        y -= 0.1f / scale;
-        DrawShape(x, y, rotationAngle);
+        y -= 0.1f; // Учитываем текущий масштаб при изменении координат
     }
     else if (key == GLFW_KEY_A && action == GLFW_PRESS)
     {
-        x -= 0.1f / scale;
-        DrawShape(x, y, rotationAngle);
+        x -= 0.1f; // Учитываем текущий масштаб при изменении координат
     }
-    // Отражение относительно оси OX
-    else if (key == GLFW_KEY_Q && action == GLFW_PRESS)
+    else if (key == GLFW_KEY_U && action == GLFW_PRESS)
     {
-        y *= -1;
-        DrawShape(x, y, rotationAngle);
+        rotationAngle += 5.0f; // Поворот против часовой стрелки на 5 градусов
     }
-    // Отражение относительно оси OY
-    else if (key == GLFW_KEY_E && action == GLFW_PRESS)
-    {
-        x *= -1;
-        DrawShape(x, y, rotationAngle);
-    }
-    else if (key == GLFW_KEY_R && action == GLFW_PRESS)
-    {
-        reflectXEqualsY(x, y);
-        DrawShape(x, y, rotationAngle);
-    }
-    // Добавим обработку клавиш I и O для поворота фигуры
     else if (key == GLFW_KEY_I && action == GLFW_PRESS)
     {
-        rotationAngle -= 1.0f; // Поворот против часовой стрелки на 1 градус
-        DrawShape(x, y, rotationAngle);
-    }
-    else if (key == GLFW_KEY_O && action == GLFW_PRESS)
-    {
-        rotationAngle += 1.0f; // Поворот по часовой стрелке на 1 градус
-        DrawShape(x, y, rotationAngle);
+        rotationAngle -= 5.0f; // Поворот по часовой стрелке на 5 градусов
     }
 }
+
 
 // Рисуем координатную плоскость с сеткой
 void drawAxesWithGrid()
@@ -211,7 +150,7 @@ int main(void)
         return -1;
 
     /* Создание окна и его контекста OpenGL */
-    GLFWwindow* window = glfwCreateWindow(900, 900, "Tetris", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(900, 900, "Grafic", NULL, NULL);
     if (!window)
     {
         glfwTerminate();
@@ -220,9 +159,6 @@ int main(void)
 
     /* Установка текущего контекста для окна */
     glfwMakeContextCurrent(window);
-
-    // Прокурчивание колеса мыши
-    glfwSetScrollCallback(window, scroll_callback);
 
     // Устанавливаем функцию обратного вызова для нажатия клавиш
     glfwSetKeyCallback(window, keyCallback);
@@ -240,8 +176,20 @@ int main(void)
         // Рисуем координатную плоскость с сеткой
         drawAxesWithGrid();
 
-        // Рисуем фигуру
-        DrawShape(x, y, rotationAngle);
+        // Сохраняем текущую матрицу
+        glPushMatrix();
+
+        // Масштабируем фигуру
+        //glScalef(scale, scale, 1.0f);
+
+        // Перемещаем фигуру
+        glTranslatef(x, y, 0.0f);
+
+        // Рисуем фигуру с учетом сдвига и масштаба
+        DrawShape(x, y);
+
+        // Восстанавливаем предыдущую матрицу
+        glPopMatrix();
 
         /* Переключение переднего и заднего буферов */
         glfwSwapBuffers(window);
