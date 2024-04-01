@@ -5,9 +5,13 @@ using namespace std;
 
 float x, y;
 float rotationAngle = 0.0;
+float scale = 1.0f;
 
 void DrawShape(float x, float y)
 {
+    // Размеры фигуры
+    float size = 0.5f * scale;
+
     // Рисуем фигуру с учетом масштаба и поворота
     glPushMatrix();
     glTranslatef(x, y, 0.0f); // Перемещение в указанную точку
@@ -16,68 +20,64 @@ void DrawShape(float x, float y)
     // Рисуем ромб
     glBegin(GL_LINES);
     glColor3f(1.0f, 1.0f, 0.0f);
-    glVertex2f(x - 0.5, y);
-    glVertex2f(x, y + 0.5);
+    glVertex2f(x - 0.25 - size, y);
+    glVertex2f(x, y + 0.25 + size);
 
-    glVertex2f(x, y + 0.5);
-    glVertex2f(x + 0.5, y);
+    glVertex2f(x, y + 0.25 + size);
+    glVertex2f(x + 0.25 + size, y);
 
-    glVertex2f(x + 0.5, y);
-    glVertex2f(x, y - 0.5);
+    glVertex2f(x + 0.25 + size, y);
+    glVertex2f(x, y - 0.25 - size);
 
-    glVertex2f(x, y - 0.5);
-    glVertex2f(x - 0.5, y);
+    glVertex2f(x, y - 0.25 - size);
+    glVertex2f(x - 0.25 - size, y);
 
     // Отрсиовка крестовины
-    glVertex2f(x, y + 0.5);
-    glVertex2f(x, y - 0.5);
+    glVertex2f(x, y + 0.25 + size);
+    glVertex2f(x, y - 0.25 - size);
 
-    glVertex2f(x + 0.5, y);
-    glVertex2f(x - 0.5, y);
+    glVertex2f(x + 0.25 + size, y);
+    glVertex2f(x - 0.25 - size, y);
 
     // Отрисовка звезды
-    glVertex2f(x - 0.5, y);
-    glVertex2f(x - 0.1, y + 0.1);
+    glVertex2f(x - 0.25 - size, y);
+    glVertex2f(x - 0.05 - size * 0.25, y + 0.05 + size * 0.25);
 
-    glVertex2f(x - 0.1, y + 0.1);
-    glVertex2f(x, y + 0.5);
+    glVertex2f(x - 0.05 - size * 0.25, y + 0.05 + size * 0.25);
+    glVertex2f(x, y + 0.25 + size);
 
-    glVertex2f(x, y + 0.5);
-    glVertex2f(x + 0.1, y + 0.1);
+    glVertex2f(x, y + 0.25 + size);
+    glVertex2f(x + 0.05 + size * 0.25, y + 0.05 + size * 0.25);
 
-    glVertex2f(x + 0.1, y + 0.1);
-    glVertex2f(x + 0.5, y);
+    glVertex2f(x + 0.05 + size * 0.25, y + 0.05 + size * 0.25);
+    glVertex2f(x + 0.25 + size, y);
 
-    glVertex2f(x + 0.5, y);
-    glVertex2f(x + 0.1, y - 0.1);
+    glVertex2f(x + 0.25 + size, y);
+    glVertex2f(x + 0.05 + size * 0.25, y - 0.05 - size * 0.25);
 
-    glVertex2f(x + 0.1, y - 0.1);
-    glVertex2f(x, y - 0.5);
+    glVertex2f(x + 0.05 + size * 0.25, y - 0.05 - size * 0.25);
+    glVertex2f(x, y - 0.25 - size);
 
-    glVertex2f(x, y - 0.5);
-    glVertex2f(x - 0.1, y - 0.1);
+    glVertex2f(x, y - 0.25 - size);
+    glVertex2f(x - 0.05 - size * 0.25, y - 0.05 - size * 0.25);
 
-    glVertex2f(x - 0.1, y - 0.1);
-    glVertex2f(x - 0.5, y);
+    glVertex2f(x - 0.05 - size * 0.25, y - 0.05 - size * 0.25);
+    glVertex2f(x - 0.25 - size, y);
     glEnd();
     glPopMatrix;
 }
 
-//void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
-//{
-//    // Изменяем масштаб фигуры
-//    if (yoffset > 0)
-//        scale += 0.1f; // Увеличиваем масштаб на 0.1 при прокручивании вверх
-//    else
-//        scale -= 0.1f; // Уменьшаем масштаб на 0.1 при прокручивании вниз
-//
-//    // Масштаб не может быть меньше 0.1
-//    if (scale < 0.1f)
-//        scale = 0.1f;
-//
-//    // Перерисовываем окно
-//    glfwPostEmptyEvent();
-//}
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+    // Изменяем масштаб фигуры
+    float scaleFactor = 1.1f;
+    if (yoffset > 0)
+        scale *= scaleFactor;
+    else
+        scale /= scaleFactor;
+
+    DrawShape(x, y); // Перерисовываем фигуру с новыми размерами
+}
 
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
@@ -159,6 +159,9 @@ int main(void)
 
     /* Установка текущего контекста для окна */
     glfwMakeContextCurrent(window);
+
+    // Устанавливаем функцию обратного вызова для прокрутки колеса мыши
+    glfwSetScrollCallback(window, scroll_callback);
 
     // Устанавливаем функцию обратного вызова для нажатия клавиш
     glfwSetKeyCallback(window, keyCallback);
