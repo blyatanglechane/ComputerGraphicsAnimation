@@ -7,10 +7,17 @@ float x, y;
 float rotationAngle = 0.0;
 float scale = 1.0f;
 
-void DrawShape(float x, float y)
+void reflectXEqualsY(float& x, float& y)
+{
+    float temp = x;
+    x = y;
+    y = temp;
+}
+
+void DrawShape()
 {
     // Размеры фигуры
-    float size = 0.5f * scale;
+    float size = 0.1f / scale;
 
     // Рисуем фигуру с учетом масштаба и поворота
     glPushMatrix();
@@ -76,7 +83,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
     else
         scale /= scaleFactor;
 
-    DrawShape(x, y); // Перерисовываем фигуру с новыми размерами
+    DrawShape(); // Перерисовываем фигуру с новыми размерами
 }
 
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
@@ -105,8 +112,22 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
     {
         rotationAngle -= 5.0f; // Поворот по часовой стрелке на 5 градусов
     }
+    // Отражение относительно оси OX
+    else if (key == GLFW_KEY_Z && action == GLFW_PRESS)
+    {
+        y *= -1;
+    }
+    // Отражение относительно оси OY
+    else if (key == GLFW_KEY_X && action == GLFW_PRESS)
+    {
+        x *= -1;
+    }
+    // Отражение относительно прямой Y = X
+    else if (key == GLFW_KEY_C && action == GLFW_PRESS)
+    {
+        reflectXEqualsY(x, y);
+    }
 }
-
 
 // Рисуем координатную плоскость с сеткой
 void drawAxesWithGrid()
@@ -182,81 +203,11 @@ int main(void)
         // Сохраняем текущую матрицу
         glPushMatrix();
 
-        // Масштабируем фигуру
-        //glScalef(scale, scale, 1.0f);
-
         // Перемещаем фигуру
         glTranslatef(x, y, 0.0f);
 
         // Рисуем фигуру с учетом сдвига и масштаба
-        DrawShape(x, y);
-
-        // Восстанавливаем предыдущую матрицу
-        glPopMatrix();
-
-        /* Переключение переднего и заднего буферов */
-        glfwSwapBuffers(window);
-
-        /* Проверка событий и их обработка */
-        glfwPollEvents();
-    }
-
-    glfwTerminate();
-    return 0;
-}
-
-
-
-
-int main(void)
-{
-    setlocale(LC_ALL, "Russian");
-
-    /* Инициализация библиотеки GLFW */
-    if (!glfwInit())
-        return -1;
-
-    /* Создание окна и его контекста OpenGL */
-    GLFWwindow* window = glfwCreateWindow(900, 900, "Grafic", NULL, NULL);
-    if (!window)
-    {
-        glfwTerminate();
-        return -1;
-    }
-
-    /* Установка текущего контекста для окна */
-    glfwMakeContextCurrent(window);
-
-    // Устанавливаем функцию обратного вызова для прокрутки колеса мыши
-    glfwSetScrollCallback(window, scroll_callback);
-
-    // Устанавливаем функцию обратного вызова для нажатия клавиш
-    glfwSetKeyCallback(window, keyCallback);
-
-    // Вводим центр фигуры
-    cout << "Введите координаты центра фигуры\n";
-    cin >> x >> y;
-
-    /* Цикл до закрытия окна */
-    while (!glfwWindowShouldClose(window))
-    {
-        /* Отрисовка здесь */
-        glClear(GL_COLOR_BUFFER_BIT);
-
-        // Рисуем координатную плоскость с сеткой
-        drawAxesWithGrid();
-
-        // Сохраняем текущую матрицу
-        glPushMatrix();
-
-        // Масштабируем фигуру
-        //glScalef(scale, scale, 1.0f);
-
-        // Перемещаем фигуру
-        glTranslatef(x, y, 0.0f);
-
-        // Рисуем фигуру с учетом сдвига и масштаба
-        DrawShape(x, y);
+        DrawShape();
 
         // Восстанавливаем предыдущую матрицу
         glPopMatrix();
